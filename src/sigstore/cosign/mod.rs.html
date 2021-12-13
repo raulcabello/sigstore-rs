@@ -574,16 +574,6 @@
 <span id="574">574</span>
 <span id="575">575</span>
 <span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2021 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -744,22 +734,12 @@
 <span class="doccomment">/// In the meantime, end users of the library can fetch the key in a secure</span>
 <span class="doccomment">/// way by using `cosign init`.</span>
 <span class="doccomment">/// This will place the key under `~/.sigstore/root/targets/rekor.pub`.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ClientBuilder</span> {
     <span class="ident">client_config</span>: <span class="ident">ClientConfig</span>,
     <span class="ident">rekor_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">fulcio_cert</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">cert_email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ClientBuilder</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">ClientBuilder</span> {
-            <span class="ident">client_config</span>: <span class="ident">ClientConfig::default</span>(),
-            <span class="ident">rekor_pub_key</span>: <span class="prelude-val">None</span>,
-            <span class="ident">fulcio_cert</span>: <span class="prelude-val">None</span>,
-            <span class="ident">cert_email</span>: <span class="prelude-val">None</span>,
-        }
-    }
 }
 
 <span class="kw">impl</span> <span class="ident">ClientBuilder</span> {
