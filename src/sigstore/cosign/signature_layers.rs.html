@@ -558,6 +558,35 @@
 <span id="558">558</span>
 <span id="559">559</span>
 <span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2021 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -646,8 +675,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">descriptor</span>: <span class="kw-2">&amp;</span><span class="ident">oci_distribution::manifest::OciDescriptor</span>,
         <span class="ident">layer</span>: <span class="kw-2">&amp;</span><span class="ident">oci_distribution::client::ImageLayer</span>,
-        <span class="ident">rekor_pub_key</span>: <span class="kw-2">&amp;</span><span class="ident">CosignVerificationKey</span>,
-        <span class="ident">fulcio_pub_key</span>: <span class="kw-2">&amp;</span><span class="ident">SubjectPublicKeyInfo</span>,
+        <span class="ident">rekor_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CosignVerificationKey</span><span class="op">&gt;</span>,
+        <span class="ident">fulcio_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SubjectPublicKeyInfo</span><span class="op">&gt;</span>,
         <span class="ident">cert_email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SignatureLayer</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">descriptor</span>.<span class="ident">media_type</span> <span class="op">!</span><span class="op">=</span> <span class="ident">SIGSTORE_OCI_MEDIA_TYPE</span> {
@@ -701,10 +730,16 @@
 
     <span class="kw">fn</span> <span class="ident">get_bundle_from_annotations</span>(
         <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">rekor_pub_key</span>: <span class="kw-2">&amp;</span><span class="ident">CosignVerificationKey</span>,
+        <span class="ident">rekor_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CosignVerificationKey</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bundle</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">bundle</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">SIGSTORE_BUNDLE_ANNOTATION</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Bundle::new_verified</span>(<span class="ident">value</span>, <span class="ident">rekor_pub_key</span>)<span class="question-mark">?</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="kw">match</span> <span class="ident">rekor_pub_key</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">key</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Bundle::new_verified</span>(<span class="ident">value</span>, <span class="ident">key</span>)<span class="question-mark">?</span>),
+                <span class="prelude-val">None</span> =&gt; {
+                    <span class="macro">info!</span>(<span class="ident">bundle</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">value</span>, <span class="string">&quot;Ignoring bundle, rekor public key not provided to verification client&quot;</span>);
+                    <span class="prelude-val">None</span>
+                }
+            },
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
         };
         <span class="prelude-val">Ok</span>(<span class="ident">bundle</span>)
@@ -712,17 +747,23 @@
 
     <span class="kw">fn</span> <span class="ident">get_certificate_from_annotations</span>(
         <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">fulcio_pub_key</span>: <span class="kw-2">&amp;</span><span class="ident">SubjectPublicKeyInfo</span>,
+        <span class="ident">fulcio_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SubjectPublicKeyInfo</span><span class="op">&gt;</span>,
         <span class="ident">bundle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Bundle</span><span class="op">&gt;</span>,
         <span class="ident">cert_email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CosignVerificationKey</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">certificate_key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">SIGSTORE_CERT_ANNOTATION</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">verify_certificate_and_extract_public_key</span>(
-                <span class="ident">value</span>.<span class="ident">as_bytes</span>(),
-                <span class="ident">fulcio_pub_key</span>,
-                <span class="ident">cert_email</span>,
-                <span class="ident">bundle</span>,
-            )<span class="question-mark">?</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="kw">match</span> <span class="ident">fulcio_pub_key</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">key</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">verify_certificate_and_extract_public_key</span>(
+                    <span class="ident">value</span>.<span class="ident">as_bytes</span>(),
+                    <span class="ident">key</span>,
+                    <span class="ident">cert_email</span>,
+                    <span class="ident">bundle</span>,
+                )<span class="question-mark">?</span>),
+                <span class="prelude-val">None</span> =&gt; {
+                    <span class="macro">info!</span>(<span class="ident">bundle</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">value</span>, <span class="string">&quot;Ignoring certificate signature, fulcio certificate not provided to verification client&quot;</span>);
+                    <span class="prelude-val">None</span>
+                }
+            },
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
         };
         <span class="prelude-val">Ok</span>(<span class="ident">certificate_key</span>)
@@ -766,19 +807,20 @@
     }
 }
 
-<span class="doccomment">/// Creates a list of SignatureLayer objects by inspecting</span>
+<span class="doccomment">/// Creates a list of [`SignatureLayer`] objects by inspecting</span>
 <span class="doccomment">/// the given OCI manifest and its associated layers.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// **Note well:** the returned SignatureLayer have been</span>
-<span class="doccomment">/// verified using the given rekor and fulcio keys.</span>
+<span class="doccomment">/// **Note well:** when Rekor and Fulcio data has been provided, the</span>
+<span class="doccomment">/// returned `SignatureLayer` is guaranteed to be</span>
+<span class="doccomment">/// verified using the given Rekor and Fulcio keys.</span>
 <span class="doccomment">/// When a certificate email is given, this is used to ensure</span>
-<span class="doccomment">/// the bundled certificate issued by Fulcio have this identity</span>
+<span class="doccomment">/// the bundled certificate issued by Fulcio has this identity</span>
 <span class="doccomment">/// associated.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build_signature_layers</span>(
     <span class="ident">manifest</span>: <span class="kw-2">&amp;</span><span class="ident">oci_distribution::manifest::OciManifest</span>,
     <span class="ident">layers</span>: <span class="kw-2">&amp;</span>[<span class="ident">oci_distribution::client::ImageLayer</span>],
-    <span class="ident">rekor_pub_key</span>: <span class="kw-2">&amp;</span><span class="ident">CosignVerificationKey</span>,
-    <span class="ident">fulcio_pub_key</span>: <span class="ident">SubjectPublicKeyInfo</span>,
+    <span class="ident">rekor_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CosignVerificationKey</span><span class="op">&gt;</span>,
+    <span class="ident">fulcio_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SubjectPublicKeyInfo</span><span class="op">&gt;</span>,
     <span class="ident">cert_email</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SignatureLayer</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signature_layers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SignatureLayer</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -794,7 +836,7 @@
                 <span class="ident">manifest_layer</span>,
                 <span class="ident">layer</span>,
                 <span class="ident">rekor_pub_key</span>,
-                <span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>,
+                <span class="ident">fulcio_pub_key</span>,
                 <span class="ident">cert_email</span>,
             ) {
                 <span class="prelude-val">Ok</span>(<span class="ident">sl</span>) =&gt; <span class="ident">signature_layers</span>.<span class="ident">push</span>(<span class="ident">sl</span>),
@@ -968,8 +1010,13 @@ JsB89BPhZYch0U0hKANx5TY+ncrm0s8bfJxxHoenAEFhwhuXeb4PqIrtoQ==
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">fulcio_pub_key</span>) <span class="op">=</span> <span class="ident">SubjectPublicKeyInfo::from_der</span>(<span class="kw-2">&amp;</span><span class="ident">fulcio_key_raw</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Cannot parse fulcio public key&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span>
-            <span class="ident">SignatureLayer::new</span>(<span class="kw-2">&amp;</span><span class="ident">descriptor</span>, <span class="kw-2">&amp;</span><span class="ident">layer</span>, <span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>, <span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>, <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">SignatureLayer::new</span>(
+            <span class="kw-2">&amp;</span><span class="ident">descriptor</span>,
+            <span class="kw-2">&amp;</span><span class="ident">layer</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>),
+            <span class="prelude-val">None</span>,
+        );
         <span class="macro">assert!</span>(<span class="ident">actual</span>.<span class="ident">is_err</span>());
     }
 
@@ -990,8 +1037,13 @@ JsB89BPhZYch0U0hKANx5TY+ncrm0s8bfJxxHoenAEFhwhuXeb4PqIrtoQ==
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">fulcio_pub_key</span>) <span class="op">=</span> <span class="ident">SubjectPublicKeyInfo::from_der</span>(<span class="kw-2">&amp;</span><span class="ident">fulcio_key_raw</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Cannot parse fulcio public key&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span>
-            <span class="ident">SignatureLayer::new</span>(<span class="kw-2">&amp;</span><span class="ident">descriptor</span>, <span class="kw-2">&amp;</span><span class="ident">layer</span>, <span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>, <span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>, <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">SignatureLayer::new</span>(
+            <span class="kw-2">&amp;</span><span class="ident">descriptor</span>,
+            <span class="kw-2">&amp;</span><span class="ident">layer</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>),
+            <span class="prelude-val">None</span>,
+        );
         <span class="macro">assert!</span>(<span class="ident">actual</span>.<span class="ident">is_err</span>());
     }
 
@@ -1013,8 +1065,13 @@ JsB89BPhZYch0U0hKANx5TY+ncrm0s8bfJxxHoenAEFhwhuXeb4PqIrtoQ==
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">fulcio_pub_key</span>) <span class="op">=</span> <span class="ident">SubjectPublicKeyInfo::from_der</span>(<span class="kw-2">&amp;</span><span class="ident">fulcio_key_raw</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Cannot parse fulcio public key&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span>
-            <span class="ident">SignatureLayer::new</span>(<span class="kw-2">&amp;</span><span class="ident">descriptor</span>, <span class="kw-2">&amp;</span><span class="ident">layer</span>, <span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>, <span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>, <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">SignatureLayer::new</span>(
+            <span class="kw-2">&amp;</span><span class="ident">descriptor</span>,
+            <span class="kw-2">&amp;</span><span class="ident">layer</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>),
+            <span class="prelude-val">None</span>,
+        );
         <span class="macro">assert!</span>(<span class="ident">actual</span>.<span class="ident">is_err</span>());
     }
 
@@ -1046,7 +1103,8 @@ JsB89BPhZYch0U0hKANx5TY+ncrm0s8bfJxxHoenAEFhwhuXeb4PqIrtoQ==
         <span class="kw">let</span> <span class="ident">annotations</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         <span class="kw">let</span> <span class="ident">rekor_pub_key</span> <span class="op">=</span> <span class="ident">get_rekor_public_key</span>();
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">SignatureLayer::get_bundle_from_annotations</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>);
+        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span>
+            <span class="ident">SignatureLayer::get_bundle_from_annotations</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">rekor_pub_key</span>));
         <span class="macro">assert!</span>(<span class="ident">actual</span>.<span class="ident">is_ok</span>());
         <span class="macro">assert!</span>(<span class="ident">actual</span>.<span class="ident">unwrap</span>().<span class="ident">is_none</span>());
     }
@@ -1060,7 +1118,7 @@ JsB89BPhZYch0U0hKANx5TY+ncrm0s8bfJxxHoenAEFhwhuXeb4PqIrtoQ==
 
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">SignatureLayer::get_certificate_from_annotations</span>(
             <span class="kw-2">&amp;</span><span class="ident">annotations</span>,
-            <span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">fulcio_pub_key</span>),
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         );
