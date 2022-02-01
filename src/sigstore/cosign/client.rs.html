@@ -357,19 +357,6 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2022 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -385,7 +372,6 @@
 <span class="comment">// See the License for the specific language governing permissions and</span>
 <span class="comment">// limitations under the License.</span>
 
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">anyhow</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">x509_parser</span>::{<span class="ident">traits::FromDer</span>, <span class="ident">x509::SubjectPublicKeyInfo</span>};
@@ -396,6 +382,7 @@
     <span class="ident">CosignCapabilities</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::crypto::CosignVerificationKey</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errors</span>::{<span class="prelude-ty">Result</span>, <span class="ident">SigstoreError</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::registry::Auth</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::simple_signing::SimpleSigning</span>;
 
@@ -412,21 +399,17 @@
 <span class="attribute">#[<span class="ident">async_trait</span>]</span>
 <span class="kw">impl</span> <span class="ident">CosignCapabilities</span> <span class="kw">for</span> <span class="ident">Client</span> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">triangulate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">auth</span>: <span class="kw-2">&amp;</span><span class="ident">Auth</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">image_reference</span>: <span class="ident">oci_distribution::Reference</span> <span class="op">=</span> <span class="ident">image</span>
-            .<span class="ident">parse</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot parse image reference &#39;{}&#39;: {:?}&quot;</span>, <span class="ident">image</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">image_reference</span>: <span class="ident">oci_distribution::Reference</span> <span class="op">=</span>
+            <span class="ident">image</span>
+                .<span class="ident">parse</span>()
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SigstoreError::OciReferenceNotValidError</span> {
+                    <span class="ident">reference</span>: <span class="ident">image</span>.<span class="ident">to_string</span>(),
+                })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">manifest_digest</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">registry_client</span>
             .<span class="ident">fetch_manifest_digest</span>(<span class="kw-2">&amp;</span><span class="ident">image_reference</span>, <span class="kw-2">&amp;</span><span class="ident">auth</span>.<span class="ident">into</span>())
-            .<span class="kw">await</span>
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">anyhow!</span>(
-                    <span class="string">&quot;Cannot fetch manifest digest for {:?}: {:?}&quot;</span>,
-                    <span class="ident">image_reference</span>,
-                    <span class="ident">e</span>
-                )
-            })<span class="question-mark">?</span>;
+            .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> <span class="macro">format!</span>(
             <span class="string">&quot;{}/{}:{}.sig&quot;</span>,
@@ -436,7 +419,9 @@
         );
         <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">sign</span>
             .<span class="ident">parse</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot calculate signature object reference {:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SigstoreError::OciReferenceNotValidError</span> {
+                <span class="ident">reference</span>: <span class="ident">image</span>.<span class="ident">to_string</span>(),
+            })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((<span class="ident">reference</span>, <span class="ident">manifest_digest</span>))
     }
@@ -454,8 +439,7 @@
         <span class="kw">let</span> <span class="ident">fulcio_pub_key</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fulcio_pub_key_der</span> {
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="ident">der</span>) =&gt; {
-                <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">key</span>) <span class="op">=</span> <span class="ident">SubjectPublicKeyInfo::from_der</span>(<span class="ident">der</span>)
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot parse fulcio public key: {:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+                <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">key</span>) <span class="op">=</span> <span class="ident">SubjectPublicKeyInfo::from_der</span>(<span class="ident">der</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(<span class="ident">key</span>)
             }
         };
@@ -493,22 +477,19 @@
         <span class="ident">oci_distribution::manifest::OciManifest</span>,
         <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">oci_distribution::client::ImageLayer</span><span class="op">&gt;</span>,
     )<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cosign_image_reference</span>: <span class="ident">oci_distribution::Reference</span> <span class="op">=</span> <span class="ident">cosign_image</span>
-            .<span class="ident">parse</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot parse image reference &#39;{}&#39;: {:?}&quot;</span>, <span class="ident">cosign_image</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">cosign_image_reference</span>: <span class="ident">oci_distribution::Reference</span> <span class="op">=</span>
+            <span class="ident">cosign_image</span>
+                .<span class="ident">parse</span>()
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SigstoreError::OciReferenceNotValidError</span> {
+                    <span class="ident">reference</span>: <span class="ident">cosign_image</span>.<span class="ident">to_string</span>(),
+                })<span class="question-mark">?</span>;
+
         <span class="kw">let</span> <span class="ident">oci_auth</span>: <span class="ident">oci_distribution::secrets::RegistryAuth</span> <span class="op">=</span> <span class="ident">auth</span>.<span class="ident">into</span>();
 
         <span class="kw">let</span> (<span class="ident">manifest</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">registry_client</span>
             .<span class="ident">pull_manifest</span>(<span class="kw-2">&amp;</span><span class="ident">cosign_image_reference</span>, <span class="kw-2">&amp;</span><span class="ident">oci_auth</span>)
-            .<span class="kw">await</span>
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">anyhow!</span>(
-                    <span class="string">&quot;Cannot pull manifest for image {:?}: {:?}&quot;</span>,
-                    <span class="ident">cosign_image_reference</span>,
-                    <span class="ident">e</span>
-                )
-            })<span class="question-mark">?</span>;
+            .<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">image_data</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">registry_client</span>
             .<span class="ident">pull</span>(
@@ -516,14 +497,7 @@
                 <span class="kw-2">&amp;</span><span class="ident">oci_auth</span>,
                 <span class="macro">vec!</span>[<span class="ident">SIGSTORE_OCI_MEDIA_TYPE</span>],
             )
-            .<span class="kw">await</span>
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">anyhow!</span>(
-                    <span class="string">&quot;Cannot pull data for image {:?}: {:?}&quot;</span>,
-                    <span class="ident">cosign_image_reference</span>,
-                    <span class="ident">e</span>
-                )
-            })<span class="question-mark">?</span>;
+            .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((<span class="ident">manifest</span>, <span class="ident">image_data</span>.<span class="ident">layers</span>))
     }

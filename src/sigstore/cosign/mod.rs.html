@@ -180,10 +180,10 @@
 <span class="doccomment">//! In case you want to mock sigstore interactions inside of your own code, you</span>
 <span class="doccomment">//! can implement the [`CosignCapabilities`] trait inside of your test suite.</span>
 
-<span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errors::Result</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::registry::Auth</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::simple_signing::SimpleSigning</span>;
 

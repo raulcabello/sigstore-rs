@@ -344,6 +344,7 @@
 <span id="343">343</span>
 <span id="344">344</span>
 <span id="345">345</span>
+<span id="346">346</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2021 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -359,7 +360,6 @@
 <span class="comment">// See the License for the specific language governing permissions and</span>
 <span class="comment">// limitations under the License.</span>
 
-<span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">anyhow</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">sha2</span>::{<span class="ident">Digest</span>, <span class="ident">Sha256</span>};
 <span class="kw">use</span> <span class="ident">std::fs</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
@@ -367,7 +367,10 @@
 <span class="kw">use</span> <span class="ident">tough</span>::{<span class="ident">RepositoryLoader</span>, <span class="ident">TargetName</span>};
 <span class="kw">use</span> <span class="ident">url::Url</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::constants</span>::{<span class="ident">SIGSTORE_FULCIO_CERT_TARGET</span>, <span class="ident">SIGSTORE_REKOR_PUB_KEY_TARGET</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident"><span class="kw">super</span>::errors</span>::{<span class="prelude-ty">Result</span>, <span class="ident">SigstoreError</span>},
+    <span class="ident">constants</span>::{<span class="ident">SIGSTORE_FULCIO_CERT_TARGET</span>, <span class="ident">SIGSTORE_REKOR_PUB_KEY_TARGET</span>},
+};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">RepositoryHelper</span> {
     <span class="ident">repository</span>: <span class="ident">tough::Repository</span>,
@@ -386,8 +389,7 @@
     {
         <span class="kw">let</span> <span class="ident">repository</span> <span class="op">=</span> <span class="ident">RepositoryLoader::new</span>(<span class="ident">root</span>, <span class="ident">metadata_base</span>, <span class="ident">target_base</span>)
             .<span class="ident">expiration_enforcement</span>(<span class="ident">tough::ExpirationEnforcement::Safe</span>)
-            .<span class="ident">load</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot load Sigstore TUF repository: {}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            .<span class="ident">load</span>()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
             <span class="ident">repository</span>,
@@ -463,9 +465,7 @@
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">fetch_target</span>(<span class="ident">repository</span>, <span class="ident">target_name</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="ident">local_file</span> {
             <span class="comment">// update the local file to have latest data from the TUF repo</span>
-            <span class="ident">fs::write</span>(<span class="ident">path</span>, <span class="ident">data</span>.<span class="ident">clone</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">anyhow!</span>(<span class="string">&quot;Error updating local copy of {}: {}&quot;</span>, <span class="ident">target_name</span>.<span class="ident">raw</span>(), <span class="ident">e</span>)
-            })<span class="question-mark">?</span>;
+            <span class="ident">fs::write</span>(<span class="ident">path</span>, <span class="ident">data</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
         }
         <span class="ident">data</span>
     } <span class="kw">else</span> {
@@ -481,20 +481,15 @@
 <span class="doccomment">/// Download a file from a TUF repository</span>
 <span class="kw">fn</span> <span class="ident">fetch_target</span>(<span class="ident">repository</span>: <span class="kw-2">&amp;</span><span class="ident">tough::Repository</span>, <span class="ident">target_name</span>: <span class="kw-2">&amp;</span><span class="ident">TargetName</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
-    <span class="kw">match</span> <span class="ident">repository</span>.<span class="ident">read_target</span>(<span class="ident">target_name</span>) {
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;Cannot fetch target {}: {}&quot;</span>, <span class="ident">target_name</span>.<span class="ident">raw</span>(), <span class="ident">e</span>)),
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(
-                <span class="string">&quot;target {} cannot be found inside of Sigstore TUF repository&quot;</span>,
-                <span class="ident">target_name</span>.<span class="ident">raw</span>()
-            ))
-        }
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">reader</span>)) =&gt; {
+    <span class="kw">match</span> <span class="ident">repository</span>.<span class="ident">read_target</span>(<span class="ident">target_name</span>)<span class="question-mark">?</span> {
+        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">SigstoreError::TufTargetNotFoundError</span>(
+            <span class="ident">target_name</span>.<span class="ident">raw</span>().<span class="ident">to_string</span>(),
+        )),
+        <span class="prelude-val">Some</span>(<span class="ident">reader</span>) =&gt; {
             <span class="ident">data</span> <span class="op">=</span> <span class="ident">read_to_end</span>(<span class="ident">reader</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
         }
-    };
-
-    <span class="prelude-val">Ok</span>(<span class="ident">data</span>)
+    }
 }
 
 <span class="doccomment">/// Compares the checksum of a local file, with the digest reported inside of</span>
@@ -509,12 +504,7 @@
         .<span class="ident">signed</span>
         .<span class="ident">targets</span>
         .<span class="ident">get</span>(<span class="ident">target_name</span>)
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="macro">anyhow!</span>(
-                <span class="string">&quot;Cannot find {} target inside of TUF repository&quot;</span>,
-                <span class="ident">target_name</span>.<span class="ident">raw</span>()
-            )
-        })<span class="question-mark">?</span>;
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">SigstoreError::TufTargetNotFoundError</span>(<span class="ident">target_name</span>.<span class="ident">raw</span>().<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="ident">local_file</span>.<span class="ident">exists</span>() {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="ident">local_file</span>)<span class="question-mark">?</span>;
@@ -561,23 +551,35 @@
             <span class="string">&quot;file://{}&quot;</span>,
             <span class="ident">metadata_base_path</span>
                 .<span class="ident">to_str</span>()
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot convert metadata_base_path into a str&quot;</span>))<span class="question-mark">?</span>
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">SigstoreError::UnexpectedError</span>(<span class="ident">String::from</span>(
+                    <span class="string">&quot;Cannot convert metadata_base_path into a str&quot;</span>
+                )))<span class="question-mark">?</span>
         );
-        <span class="kw">let</span> <span class="ident">metadata_base_url</span> <span class="op">=</span> <span class="ident">url::Url::parse</span>(<span class="kw-2">&amp;</span><span class="ident">metadata_base_url</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">metadata_base_url</span> <span class="op">=</span> <span class="ident">url::Url::parse</span>(<span class="kw-2">&amp;</span><span class="ident">metadata_base_url</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+            <span class="ident">SigstoreError::UnexpectedError</span>(<span class="ident">String::from</span>(
+                <span class="string">&quot;Cannot convert metadata_base_url into a URL&quot;</span>,
+            ))
+        })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">target_base_url</span> <span class="op">=</span> <span class="macro">format!</span>(
             <span class="string">&quot;file://{}&quot;</span>,
             <span class="ident">targets_base_path</span>
                 .<span class="ident">to_str</span>()
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot convert targets_base_path into a str&quot;</span>))<span class="question-mark">?</span>
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">SigstoreError::UnexpectedError</span>(<span class="ident">String::from</span>(
+                    <span class="string">&quot;Cannot convert targets_base_path into a str&quot;</span>
+                )))<span class="question-mark">?</span>
         );
-        <span class="kw">let</span> <span class="ident">target_base_url</span> <span class="op">=</span> <span class="ident">url::Url::parse</span>(<span class="kw-2">&amp;</span><span class="ident">target_base_url</span>)<span class="question-mark">?</span>;
-
+        <span class="kw">let</span> <span class="ident">target_base_url</span> <span class="op">=</span> <span class="ident">url::Url::parse</span>(<span class="kw-2">&amp;</span><span class="ident">target_base_url</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+            <span class="ident">SigstoreError::UnexpectedError</span>(<span class="ident">String::from</span>(
+                <span class="string">&quot;Cannot convert targets_base_url into a URL&quot;</span>,
+            ))
+        })<span class="question-mark">?</span>;
         <span class="comment">// It&#39;s fine to ignore timestamp.json expiration inside of test env</span>
-        <span class="ident">RepositoryLoader::new</span>(<span class="ident">SIGSTORE_ROOT</span>.<span class="ident">as_bytes</span>(), <span class="ident">metadata_base_url</span>, <span class="ident">target_base_url</span>)
-            .<span class="ident">expiration_enforcement</span>(<span class="ident">tough::ExpirationEnforcement::Unsafe</span>)
-            .<span class="ident">load</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">anyhow!</span>(<span class="string">&quot;Cannot create repository: {}&quot;</span>, <span class="ident">e</span>))
+        <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span>
+            <span class="ident">RepositoryLoader::new</span>(<span class="ident">SIGSTORE_ROOT</span>.<span class="ident">as_bytes</span>(), <span class="ident">metadata_base_url</span>, <span class="ident">target_base_url</span>)
+                .<span class="ident">expiration_enforcement</span>(<span class="ident">tough::ExpirationEnforcement::Unsafe</span>)
+                .<span class="ident">load</span>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">repo</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

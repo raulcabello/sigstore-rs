@@ -214,6 +214,21 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2021 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -231,7 +246,8 @@
 
 <span class="doccomment">//! Set of structs and enums used to define how to interact with OCI registries</span>
 
-<span class="kw">use</span> <span class="ident">anyhow::Result</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errors</span>::{<span class="prelude-ty">Result</span>, <span class="ident">SigstoreError</span>};
+
 <span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
 <span class="kw">use</span> <span class="ident">std::convert::From</span>;
 
@@ -408,6 +424,10 @@
         <span class="self">self</span>.<span class="ident">registry_client</span>
             .<span class="ident">fetch_manifest_digest</span>(<span class="ident">image</span>, <span class="ident">auth</span>)
             .<span class="kw">await</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SigstoreError::RegistryFetchManifestError</span> {
+                <span class="ident">image</span>: <span class="ident">image</span>.<span class="ident">whole</span>(),
+                <span class="ident">error</span>: <span class="ident">e</span>.<span class="ident">to_string</span>(),
+            })
     }
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">pull</span>(
@@ -419,6 +439,10 @@
         <span class="self">self</span>.<span class="ident">registry_client</span>
             .<span class="ident">pull</span>(<span class="ident">image</span>, <span class="ident">auth</span>, <span class="ident">accepted_media_types</span>)
             .<span class="kw">await</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SigstoreError::RegistryPullError</span> {
+                <span class="ident">image</span>: <span class="ident">image</span>.<span class="ident">whole</span>(),
+                <span class="ident">error</span>: <span class="ident">e</span>.<span class="ident">to_string</span>(),
+            })
     }
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">pull_manifest</span>(
@@ -426,7 +450,13 @@
         <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">oci_distribution::Reference</span>,
         <span class="ident">auth</span>: <span class="kw-2">&amp;</span><span class="ident">oci_distribution::secrets::RegistryAuth</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">oci_distribution::manifest::OciManifest</span>, <span class="ident">String</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">registry_client</span>.<span class="ident">pull_manifest</span>(<span class="ident">image</span>, <span class="ident">auth</span>).<span class="kw">await</span>
+        <span class="self">self</span>.<span class="ident">registry_client</span>
+            .<span class="ident">pull_manifest</span>(<span class="ident">image</span>, <span class="ident">auth</span>)
+            .<span class="kw">await</span>
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SigstoreError::RegistryPullManifestError</span> {
+                <span class="ident">image</span>: <span class="ident">image</span>.<span class="ident">whole</span>(),
+                <span class="ident">error</span>: <span class="ident">e</span>.<span class="ident">to_string</span>(),
+            })
     }
 }
 </code></pre></div>
