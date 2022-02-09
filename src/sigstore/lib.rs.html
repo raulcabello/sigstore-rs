@@ -131,6 +131,43 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2021 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -192,7 +229,18 @@
 <span class="doccomment">//! Verify the signature of a container image/oci artifact:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust,no_run</span>
-<span class="doccomment">//! use crate::sigstore::cosign::CosignCapabilities;</span>
+<span class="doccomment">//! use crate::sigstore::cosign::{</span>
+<span class="doccomment">//!     CosignCapabilities,</span>
+<span class="doccomment">//!     filter_signature_layers,</span>
+<span class="doccomment">//! };</span>
+<span class="doccomment">//! use crate::sigstore::cosign::verification_constraint::{</span>
+<span class="doccomment">//!     AnnotationVerifier,</span>
+<span class="doccomment">//!     PublicKeyVerifier,</span>
+<span class="doccomment">//!     VerificationConstraintVec,</span>
+<span class="doccomment">//! };</span>
+<span class="doccomment">//! use crate::sigstore::errors::SigstoreError;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! use std::boxed::Box;</span>
 <span class="doccomment">//! use std::collections::HashMap;</span>
 <span class="doccomment">//! use std::fs;</span>
 <span class="doccomment">//!</span>
@@ -219,24 +267,50 @@
 <span class="doccomment">//!   // Obtained via `triangulate`</span>
 <span class="doccomment">//!   let source_image_digest = &quot;sha256-5f481572d088dc4023afb35fced9530ced3d9b03bf7299c6f492163cb9f0452e&quot;;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!   let mut annotations: HashMap&lt;String, String&gt; = HashMap::new();</span>
-<span class="doccomment">//!   annotations.insert(&quot;env&quot;.to_string(), &quot;prod&quot;.to_string());</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!   let verification_key = fs::read_to_string(&quot;~/cosign.pub&quot;)</span>
-<span class="doccomment">//!     .expect(&quot;Cannot read contents of cosign public key&quot;);</span>
-<span class="doccomment">//!   let signatures_matching_requirements = client.verify(</span>
+<span class="doccomment">//!   // Obtain the list the signatures layers associated that can be trusted</span>
+<span class="doccomment">//!   let signature_layers = client.trusted_signature_layers(</span>
 <span class="doccomment">//!     auth,</span>
 <span class="doccomment">//!     cosign_image,</span>
 <span class="doccomment">//!     source_image_digest,</span>
-<span class="doccomment">//!     &amp;Some(verification_key),</span>
-<span class="doccomment">//!     Some(annotations)</span>
-<span class="doccomment">//!   ).await.expect(&quot;unexpected verification error&quot;);</span>
+<span class="doccomment">//!   ).await.expect(&quot;Could not obtain signature layers&quot;);</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!   if signatures_matching_requirements.is_empty() {</span>
-<span class="doccomment">//!     panic!(&quot;no signature is matching the requirements&quot;);</span>
-<span class="doccomment">//!   } else {</span>
-<span class="doccomment">//!     println!(&quot;signatures matching the requirements: {:?}&quot;,</span>
-<span class="doccomment">//!         signatures_matching_requirements);</span>
+<span class="doccomment">//!   // Define verification constraints</span>
+<span class="doccomment">//!   let mut annotations: HashMap&lt;String, String&gt; = HashMap::new();</span>
+<span class="doccomment">//!   annotations.insert(&quot;env&quot;.to_string(), &quot;prod&quot;.to_string());</span>
+<span class="doccomment">//!   let annotation_verifier = AnnotationVerifier{</span>
+<span class="doccomment">//!     annotations,</span>
+<span class="doccomment">//!   };</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   let verification_key = fs::read_to_string(&quot;~/cosign.pub&quot;)</span>
+<span class="doccomment">//!     .expect(&quot;Cannot read contents of cosign public key&quot;);</span>
+<span class="doccomment">//!   let pub_key_verifier = PublicKeyVerifier::new(</span>
+<span class="doccomment">//!     &amp;verification_key).expect(&quot;Could not create verifier&quot;);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   let verification_constraints: VerificationConstraintVec = vec![</span>
+<span class="doccomment">//!     Box::new(annotation_verifier),</span>
+<span class="doccomment">//!     Box::new(pub_key_verifier),</span>
+<span class="doccomment">//!   ];</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   // Filter all the trusted layers, find the ones satisfying the constraints</span>
+<span class="doccomment">//!   // we just defined</span>
+<span class="doccomment">//!   let signatures_matching_requirements = filter_signature_layers(</span>
+<span class="doccomment">//!     &amp;signature_layers,</span>
+<span class="doccomment">//!     verification_constraints);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   match signatures_matching_requirements {</span>
+<span class="doccomment">//!     Err(SigstoreError::SigstoreNoVerifiedLayer) =&gt; {</span>
+<span class="doccomment">//!       panic!(&quot;no signature is matching the requirements&quot;)</span>
+<span class="doccomment">//!     },</span>
+<span class="doccomment">//!     Err(e) =&gt; {</span>
+<span class="doccomment">//!       panic!(&quot;Something went wrong while verifying the image: {}&quot;, e)</span>
+<span class="doccomment">//!     },</span>
+<span class="doccomment">//!     Ok(signatures) =&gt; {</span>
+<span class="doccomment">//!       println!(&quot;signatures matching the requirements:&quot;);</span>
+<span class="doccomment">//!       serde_json::to_writer_pretty(</span>
+<span class="doccomment">//!           std::io::stdout(),</span>
+<span class="doccomment">//!           &amp;signatures,</span>
+<span class="doccomment">//!       ).unwrap();</span>
+<span class="doccomment">//!     }</span>
 <span class="doccomment">//!   }</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>

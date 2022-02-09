@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["rusticata_macros"] = [];
+implementors["sigstore"] = [];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
