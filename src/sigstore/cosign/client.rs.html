@@ -1,5 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;cosign&#x2F;client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../sigstore/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;cosign&#x2F;client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../sigstore/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../sigstore/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -171,12 +172,6 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2022 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -193,7 +188,6 @@
 <span class="comment">// limitations under the License.</span>
 
 <span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
-<span class="kw">use</span> <span class="ident">x509_parser</span>::{<span class="ident">traits::FromDer</span>, <span class="ident">x509::SubjectPublicKeyInfo</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">constants::SIGSTORE_OCI_MEDIA_TYPE</span>,
@@ -201,8 +195,11 @@
     <span class="ident">CosignCapabilities</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::crypto::CosignVerificationKey</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errors</span>::{<span class="prelude-ty">Result</span>, <span class="ident">SigstoreError</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::registry::Auth</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">crypto::certificate_pool::CertificatePool</span>,
+    <span class="ident">errors</span>::{<span class="prelude-ty">Result</span>, <span class="ident">SigstoreError</span>},
+};
 
 <span class="doccomment">/// Cosign Client</span>
 <span class="doccomment">///</span>
@@ -210,7 +207,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Client</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">registry_client</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident"><span class="kw">crate</span>::registry::ClientCapabilities</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">rekor_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CosignVerificationKey</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">fulcio_pub_key_der</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">fulcio_cert_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CertificatePool</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">async_trait</span>]</span>
@@ -232,7 +229,7 @@
             <span class="string">&quot;{}/{}:{}.sig&quot;</span>,
             <span class="ident">image_reference</span>.<span class="ident">registry</span>(),
             <span class="ident">image_reference</span>.<span class="ident">repository</span>(),
-            <span class="ident">manifest_digest</span>.<span class="ident">replace</span>(<span class="string">&quot;:&quot;</span>, <span class="string">&quot;-&quot;</span>)
+            <span class="ident">manifest_digest</span>.<span class="ident">replace</span>(<span class="string">&#39;:&#39;</span>, <span class="string">&quot;-&quot;</span>)
         );
         <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">sign</span>
             .<span class="ident">parse</span>()
@@ -260,20 +257,12 @@
             }
         };
 
-        <span class="kw">let</span> <span class="ident">fulcio_pub_key</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fulcio_pub_key_der</span> {
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">der</span>) =&gt; {
-                <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">key</span>) <span class="op">=</span> <span class="ident">SubjectPublicKeyInfo::from_der</span>(<span class="ident">der</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(<span class="ident">key</span>)
-            }
-        };
-
         <span class="ident">build_signature_layers</span>(
             <span class="kw-2">&amp;</span><span class="ident">image_manifest</span>,
             <span class="ident">source_image_digest</span>,
             <span class="kw-2">&amp;</span><span class="ident">layers</span>,
             <span class="self">self</span>.<span class="ident">rekor_pub_key</span>.<span class="ident">as_ref</span>(),
-            <span class="ident">fulcio_pub_key</span>.<span class="ident">as_ref</span>(),
+            <span class="self">self</span>.<span class="ident">fulcio_cert_pool</span>.<span class="ident">as_ref</span>(),
         )
     }
 }
@@ -317,7 +306,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cosign::tests</span>::{<span class="ident">FULCIO_CRT_PEM</span>, <span class="ident">REKOR_PUB_KEY</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cosign::tests</span>::{<span class="ident">get_fulcio_cert_pool</span>, <span class="ident">REKOR_PUB_KEY</span>};
     <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">crypto::SignatureDigestAlgorithm</span>, <span class="ident">mock_client::test::MockOciClient</span>};
 
     <span class="kw">fn</span> <span class="ident">build_test_client</span>(<span class="ident">mock_client</span>: <span class="ident">MockOciClient</span>) -&gt; <span class="ident">Client</span> {
@@ -330,7 +319,7 @@
         <span class="ident">Client</span> {
             <span class="ident">registry_client</span>: <span class="ident">Box::new</span>(<span class="ident">mock_client</span>),
             <span class="ident">rekor_pub_key</span>: <span class="prelude-val">Some</span>(<span class="ident">rekor_pub_key</span>),
-            <span class="ident">fulcio_pub_key_der</span>: <span class="prelude-val">Some</span>(<span class="ident">FULCIO_CRT_PEM</span>.<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>()),
+            <span class="ident">fulcio_cert_pool</span>: <span class="prelude-val">Some</span>(<span class="ident">get_fulcio_cert_pool</span>()),
         }
     }
 
@@ -356,5 +345,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="sigstore" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="sigstore" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

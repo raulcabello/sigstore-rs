@@ -1,5 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;cosign&#x2F;client_builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client_builder.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../sigstore/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;cosign&#x2F;client_builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client_builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../sigstore/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../sigstore/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -114,6 +115,23 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
 </pre><pre class="rust"><code><span class="comment">//</span>
 <span class="comment">// Copyright 2022 The Sigstore Authors.</span>
 <span class="comment">//</span>
@@ -133,10 +151,10 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::client::Client</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::crypto</span>::{
-    <span class="ident">certificate::extract_public_key_from_pem_cert</span>, <span class="ident">CosignVerificationKey</span>, <span class="ident">SignatureDigestAlgorithm</span>,
+    <span class="ident">certificate_pool::CertificatePool</span>, <span class="ident">CosignVerificationKey</span>, <span class="ident">SignatureDigestAlgorithm</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errors::Result</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::registry::ClientConfig</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::registry</span>::{<span class="ident">Certificate</span>, <span class="ident">ClientConfig</span>};
 
 <span class="doccomment">/// A builder that generates Client objects.</span>
 <span class="doccomment">///</span>
@@ -145,47 +163,64 @@
 <span class="doccomment">/// Rekor integration can be enabled by specifying Rekor&#39;s public key.</span>
 <span class="doccomment">/// This can be provided via the [`ClientBuilder::with_rekor_pub_key`] method.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// &gt; Note well: currently this library is not able to retrieve the key from Sigstore&#39;s</span>
-<span class="doccomment">/// &gt; TUF repository like `cosign` does. This will be done in the near future.</span>
+<span class="doccomment">/// &gt; Note well: the [`tuf`](crate::tuf) module provides helper structs and methods</span>
+<span class="doccomment">/// &gt; to obtain this data from the official TUF repository of the Sigstore project.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ## Fulcio integration</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Fulcio integration can be enabled by specifying Fulcio&#39;s certificate.</span>
 <span class="doccomment">/// This can be provided via the [`ClientBuilder::with_fulcio_cert`] method.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// &gt; Note well: currently this library is not able to retrieve the certificate from Sigstore&#39;s</span>
-<span class="doccomment">/// &gt; TUF repository like `cosign` does. This will be done in the near future.</span>
+<span class="doccomment">/// &gt; Note well: the [`tuf`](crate::tuf) module provides helper structs and methods</span>
+<span class="doccomment">/// &gt; to obtain this data from the official TUF repository of the Sigstore project.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ClientBuilder</span> {
     <span class="ident">oci_client_config</span>: <span class="ident">ClientConfig</span>,
     <span class="ident">rekor_pub_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="ident">fulcio_cert</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">fulcio_certs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Certificate</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ClientBuilder</span> {
     <span class="doccomment">/// Specify the public key used by Rekor.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Currently this library is not able to retrieve the key from Sigstore&#39;s</span>
-    <span class="doccomment">/// TUF repository like `cosign` does. This will be done in the near future.</span>
+    <span class="doccomment">/// The public key can be obtained by using the helper methods under the</span>
+    <span class="doccomment">/// [`tuf`](crate::tuf) module.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// In the meantime, end users of the library can fetch the key in a secure</span>
-    <span class="doccomment">/// way by using `cosign initialize`.</span>
-    <span class="doccomment">/// This will place the key under `~/.sigstore/root/targets/rekor.pub`.</span>
+    <span class="doccomment">/// `key` is a PEM encoded public key</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When provided, this enables Rekor&#39;s integration.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_rekor_pub_key</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">rekor_pub_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>.<span class="ident">to_string</span>());
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Specify the certificate used by Fulcio.</span>
+    <span class="doccomment">/// Specify the certificate used by Fulcio. This method can be invoked</span>
+    <span class="doccomment">/// multiple times to add all the certificates that Fulcio used over the</span>
+    <span class="doccomment">/// time.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Currently this library is not able to retrieve the certificate from Sigstore&#39;s</span>
-    <span class="doccomment">/// TUF repository like `cosign` does. This will be done in the near future.</span>
+    <span class="doccomment">/// `cert` is a PEM encoded certificate</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// In the meantime, end users of the library can fetch the certificate in a secure</span>
-    <span class="doccomment">/// way by using `cosign initialize`.</span>
-    <span class="doccomment">/// This will place the key under `~/.sigstore/root/targets/fulcio.crt.pem`.</span>
+    <span class="doccomment">/// The certificates can be obtained by using the helper methods under the</span>
+    <span class="doccomment">/// [`tuf`](crate::tuf) module.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When provided, this enables Fulcio&#39;s integration.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_fulcio_cert</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cert</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">fulcio_cert</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cert</span>.<span class="ident">to_owned</span>());
+        <span class="kw">let</span> <span class="ident">certificate</span> <span class="op">=</span> <span class="ident">Certificate</span> {
+            <span class="ident">encoding</span>: <span class="ident"><span class="kw">crate</span>::registry::CertificateEncoding::Pem</span>,
+            <span class="ident">data</span>: <span class="ident">cert</span>.<span class="ident">to_owned</span>(),
+        };
+        <span class="self">self</span>.<span class="ident">fulcio_certs</span>.<span class="ident">push</span>(<span class="ident">certificate</span>);
+        <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// Specify the certificates used by Fulcio.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The certificates can be obtained by using the helper methods under the</span>
+    <span class="doccomment">/// [`tuf`](crate::tuf) module.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When provided, this enables Fulcio&#39;s integration.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_fulcio_certs</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">certs</span>: <span class="kw-2">&amp;</span>[<span class="ident"><span class="kw">crate</span>::registry::Certificate</span>]) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">fulcio_certs</span> <span class="op">=</span> <span class="ident">certs</span>.<span class="ident">to_vec</span>();
         <span class="self">self</span>
     }
 
@@ -201,7 +236,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Client</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">rekor_pub_key</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">rekor_pub_key</span> {
             <span class="prelude-val">None</span> =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;rekor public key not provided&quot;</span>);
+                <span class="macro">info!</span>(<span class="string">&quot;Rekor public key not provided. Rekor integration disabled&quot;</span>);
                 <span class="prelude-val">None</span>
             }
             <span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CosignVerificationKey::from_pem</span>(
@@ -210,12 +245,12 @@
             )<span class="question-mark">?</span>),
         };
 
-        <span class="kw">let</span> <span class="ident">fulcio_pub_key_der</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fulcio_cert</span> {
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;The fulcio cert has not been provided&quot;</span>);
-                <span class="prelude-val">None</span>
-            }
-            <span class="prelude-val">Some</span>(<span class="ident">cert</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">extract_public_key_from_pem_cert</span>(<span class="kw-2">&amp;</span><span class="ident">cert</span>)<span class="question-mark">?</span>),
+        <span class="kw">let</span> <span class="ident">fulcio_cert_pool</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fulcio_certs</span>.<span class="ident">is_empty</span>() {
+            <span class="macro">info!</span>(<span class="string">&quot;No Fulcio cert has been provided. Fulcio integration disabled&quot;</span>);
+            <span class="prelude-val">None</span>
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">cert_pool</span> <span class="op">=</span> <span class="ident">CertificatePool::from_certificates</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fulcio_certs</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Some</span>(<span class="ident">cert_pool</span>)
         };
 
         <span class="kw">let</span> <span class="ident">oci_client</span> <span class="op">=</span>
@@ -225,10 +260,10 @@
                 <span class="ident">registry_client</span>: <span class="ident">oci_client</span>,
             }),
             <span class="ident">rekor_pub_key</span>,
-            <span class="ident">fulcio_pub_key_der</span>,
+            <span class="ident">fulcio_cert_pool</span>,
         })
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="sigstore" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="sigstore" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>
