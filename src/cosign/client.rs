@@ -72,6 +72,7 @@ impl CosignCapabilities for Client {
         auth: &Auth,
         source_image_digest: &str,
         cosign_image: &str,
+        experimental: bool
     ) -> Result<Vec<SignatureLayer>> {
         let (manifest, layers) = self.fetch_manifest_and_layers(auth, cosign_image).await?;
         let image_manifest = match manifest {
@@ -90,6 +91,7 @@ impl CosignCapabilities for Client {
             &layers,
             self.rekor_pub_key.as_ref(),
             self.fulcio_cert_pool.as_ref(),
+            experimental
         )?;
 
         debug!(signature_layers=?sl, ?cosign_image, "trusted signature layers");

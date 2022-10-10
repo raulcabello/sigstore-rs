@@ -124,6 +124,7 @@ pub struct SignatureLayer {
     pub signature: String,
     #[serde(skip_serializing)]
     pub raw_data: Vec<u8>,
+    pub experimental: bool
 }
 
 impl fmt::Display for SignatureLayer {
@@ -185,6 +186,7 @@ impl SignatureLayer {
         source_image_digest: &str,
         rekor_pub_key: Option<&CosignVerificationKey>,
         fulcio_cert_pool: Option<&CertificatePool>,
+        experimental: bool
     ) -> Result<SignatureLayer> {
         if descriptor.media_type != SIGSTORE_OCI_MEDIA_TYPE {
             return Err(SigstoreError::SigstoreMediaTypeNotFoundError);
@@ -220,6 +222,7 @@ impl SignatureLayer {
             &annotations,
             fulcio_cert_pool,
             bundle.as_ref(),
+            experimental
         )?;
 
         Ok(SignatureLayer {
@@ -229,6 +232,7 @@ impl SignatureLayer {
             signature,
             bundle,
             certificate_signature,
+            experimental
         })
     }
 
@@ -261,6 +265,7 @@ impl SignatureLayer {
         annotations: &HashMap<String, String>,
         fulcio_cert_pool: Option<&CertificatePool>,
         bundle: Option<&Bundle>,
+        experimental: bool,
     ) -> Result<Option<CertificateSignature>> {
         let cert_raw = match annotations.get(SIGSTORE_CERT_ANNOTATION) {
             Some(value) => value,
@@ -274,15 +279,8 @@ impl SignatureLayer {
             }
         };
 
-        let bundle = match bundle {
-            Some(b) => b,
-            None => {
-                return Err(SigstoreError::SigstoreRekorBundleNotFoundError);
-            }
-        };
-
         let certificate_signature =
-            CertificateSignature::from_certificate(cert_raw.as_bytes(), fulcio_cert_pool, bundle)?;
+            CertificateSignature::from_certificate(cert_raw.as_bytes(), fulcio_cert_pool, bundle, experimental)?;
         Ok(Some(certificate_signature))
     }
 
@@ -314,6 +312,7 @@ pub(crate) fn build_signature_layers(
     layers: &[oci_distribution::client::ImageLayer],
     rekor_pub_key: Option<&CosignVerificationKey>,
     fulcio_cert_pool: Option<&CertificatePool>,
+    experimental: bool
 ) -> Result<Vec<SignatureLayer>> {
     let mut signature_layers: Vec<SignatureLayer> = Vec::new();
 
@@ -330,6 +329,7 @@ pub(crate) fn build_signature_layers(
                 source_image_digest,
                 rekor_pub_key,
                 fulcio_cert_pool,
+                experimental,
             ) {
                 Ok(sl) => signature_layers.push(sl),
                 Err(e) => {
@@ -352,16 +352,26 @@ impl CertificateSignature {
     pub(crate) fn from_certificate(
         cert_raw: &[u8],
         fulcio_cert_pool: &CertificatePool,
-        trusted_bundle: &Bundle,
+        trusted_bundle: Option<&Bundle>,
+        experimental: bool
     ) -> Result<Self> {
         let (_, pem) = parse_x509_pem(cert_raw)?;
         let (_, cert) = parse_x509_certificate(&pem.contents)?;
-        let integrated_time = trusted_bundle.payload.integrated_time;
 
-        // ensure the certificate has been issued by Fulcio
-        fulcio_cert_pool.verify(cert_raw)?;
+        // fulcio verification should just happens if experimental flag is enabled
+        if !experimental {
+            let trusted_bundle = match trusted_bundle {
+                Some(b) => b,
+                None => {
+                    return Err(SigstoreError::SigstoreRekorBundleNotFoundError);
+                }
+            };
+            let integrated_time = trusted_bundle.payload.integrated_time;
 
-        crypto::certificate::is_trusted(&cert, integrated_time)?;
+            // ensure the certificate has been issued by Fulcio
+            fulcio_cert_pool.verify(cert_raw)?;
+            crypto::certificate::is_trusted(&cert, integrated_time)?;
+        }
 
         let subject = CertificateSubject::from_certificate(&cert)?;
         let verification_key =

@@ -84,6 +84,7 @@ pub trait CosignCapabilities {
         auth: &Auth,
         source_image_digest: &str,
         cosign_image: &str,
+        experimental: bool
     ) -> Result<Vec<SignatureLayer>>;
 }
 
