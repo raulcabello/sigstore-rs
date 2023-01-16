@@ -41,7 +41,7 @@ x509-parser = { version = "0.13.2", features = ["verify"] }
 [dev-dependencies]
 anyhow = "1.0.54"
 chrono = "0.4.19"
-clap = { version = "3.1.0", features = ["derive"] }
+clap = { version = "4.1.1", features = ["derive"] }
 openssl = "0.10.38"
 rstest = "0.14.0"
 tempfile = "3.3.0"
