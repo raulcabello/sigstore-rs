@@ -21,7 +21,7 @@ jobs:
         with:
           command: doc
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305 # v3.8.0
+        uses: peaceiris/actions-gh-pages@bd8c6b06eba6b3d25d72b7a1767993c0aeee42e7 # v3.9.2
         with:
           deploy_key: ${{ secrets.DOCS_GH_DEPLOYMENT_PRIVATE_KEY }}
           publish_dir: ./target/doc/
